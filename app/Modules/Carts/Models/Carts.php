@@ -18,7 +18,7 @@ class Carts extends Model
 
     public function items()
     {
-        return $this->hasMany(CartItems::class);
+        return $this->hasMany(CartItems::class, 'cart_id');
     }
 
     public function reminderLogs()

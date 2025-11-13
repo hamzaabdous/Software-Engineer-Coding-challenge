@@ -18,34 +18,43 @@ class CartReminderTestSeeder extends Seeder
      */
     public function run()
     {
-        // Create or get a test user
         $user = User::firstOrCreate(
-            ['email' => 'testuser@example.com'],
-            ['name' => 'Test User', 'password' => bcrypt('password')]
+            ['email' => 'three-stage@example.com'],
+            ['name' => 'Three Stage User', 'password' => bcrypt('password')]
         );
 
-        // Create or get a test product
         $product = Products::firstOrCreate(
-            ['name' => 'Test Product'],
-            ['description' => 'Seeded test product', 'price' => 29.99, 'stock' => 10]
+            ['name' => 'Reminder Test Product'],
+            ['description' => 'Used for reminder stage testing', 'price' => 49.99, 'stock' => 50]
         );
 
-        // Create a cart that is not finalized
         $cart = Carts::create([
             'user_id' => $user->id,
             'is_finalized' => false,
         ]);
 
-        // Backdate the cart creation time (3 hours ago)
-        $cart->update(['created_at' => Carbon::now()->subHours(3)]);
+        \DB::table('carts')->where('id', $cart->id)->update([
+            'created_at' => Carbon::now()->subDays(4)->toDateTimeString(),
+        ]);
 
-        // Add an item to the cart
         CartItems::create([
             'cart_id' => $cart->id,
             'product_id' => $product->id,
-            'quantity' => 1,
+            'quantity' => 2,
         ]);
 
-        echo "✅ Seeded cart ID: {$cart->id} for user: {$user->email}\n";
+        CartReminderLogs::create([
+            'cart_id' => $cart->id,
+            'reminder_number' => 1,
+            'sent_at' => Carbon::now()->subDays(3), 
+        ]);
+
+        CartReminderLogs::create([
+            'cart_id' => $cart->id,
+            'reminder_number' => 2,
+            'sent_at' => Carbon::now()->subDays(1), 
+        ]);
+
+        echo "🛒 Cart ID {$cart->id} with 2 reminder logs created for 3rd reminder test.\n";
     }
 }
